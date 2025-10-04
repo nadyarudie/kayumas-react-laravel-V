@@ -18,7 +18,11 @@ import JemaatMeninggal from './pages/JemaatMeninggal.jsx';
 import GaleriFoto from './pages/GaleriFoto.jsx';
 import GaleriVideo from './pages/GaleriVideo.jsx';
 import ErrorPage from './pages/ErrorPage.jsx';
-import NotFound from './pages/NotFound.jsx'; // <-- BARU
+import NotFound from './pages/NotFound.jsx'; // <-- BARUc
+import Panitia from './pages/Panitia.jsx'; // <-- BARUc
+import Koinonia from './pages/Koinonia.jsx'; // ⬅️ baru
+
+
 
 // CSS utama
 import './index.css';
@@ -44,6 +48,8 @@ const router = createBrowserRouter(
         { path: 'artikel/:slug', element: <ArticleDetail /> },
         { path: 'galeri-foto', element: <GaleriFoto /> },
         { path: 'galeri-video', element: <GaleriVideo /> },
+        { path: 'panitia', element: <Panitia /> },
+        { path: "dewan/koinonia", element: <Koinonia /> },
 
         // 404 "dalam layout" supaya Navbar & Footer tetap tampil
         { path: '404', element: <NotFound /> },
