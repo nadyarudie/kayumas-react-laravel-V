@@ -1,71 +1,84 @@
 // src/main.jsx
-import React from 'react';
-import ReactDOM from 'react-dom/client';
-import { createBrowserRouter, RouterProvider } from 'react-router-dom';
+import React from "react";
+import ReactDOM from "react-dom/client";
+import { createBrowserRouter, RouterProvider } from "react-router-dom";
 
-import App from './App.jsx';
-import Home from './pages/Home.jsx';
-import PetaWilayah from './pages/PetaWilayah.jsx';
-import ArticleList from './pages/ArticleList.jsx';
-import ArticleDetail from './pages/ArticleDetail.jsx';
-import Sejarah from './pages/Sejarah.jsx';
-import VisiMisi from './pages/VisiMisi.jsx';
-import AnakLahir from './pages/AnakLahir.jsx';
-import JemaatSakit from './pages/JemaatSakit.jsx';
-import JemaatMeninggal from './pages/JemaatMeninggal.jsx';
-import GaleriFoto from './pages/GaleriFoto.jsx';
-import GaleriVideo from './pages/GaleriVideo.jsx';
-import ErrorPage from './pages/ErrorPage.jsx';
-import NotFound from './pages/NotFound.jsx';
-import Panitia from './pages/Panitia.jsx';
-import Pengajuan from './pages/Pengajuan.jsx';
-import Reservasi from './pages/pengajuan/Reservasi.jsx';
+import App from "./App.jsx";
+import Home from "./pages/Home.jsx";
+import PetaWilayah from "./pages/PetaWilayah.jsx";
 
+// Profil
+import Sejarah from "./pages/profil/Sejarah.jsx";
+import VisiMisi from "./pages/profil/VisiMisi.jsx";
 
-// === Dewan pages (pakai yang baru) ===
-import DewanKoinonia from './pages/dewan/Koinonia.jsx';
-import DewanMarturia from './pages/dewan/Marturia.jsx';
-import DewanDiakonia from './pages/dewan/Diakonia.jsx';
+// Informasi
+import AnakLahir from "./pages/informasi/AnakLahir.jsx";
+import JemaatSakit from "./pages/informasi/JemaatSakit.jsx";
+import JemaatMeninggal from "./pages/informasi/JemaatMeninggal.jsx";
+import Panitia from "./pages/informasi/Panitia.jsx";
 
-import './index.css';
+// Publikasi
+import ArticleList from "./pages/publikasi/ArticleList.jsx";
+import ArticleDetail from "./pages/ArticleDetail.jsx";
+
+// Pengajuan
+import Pengajuan from "./pages/pengajuan/Pengajuan.jsx";
+import Reservasi from "./pages/pengajuan/Reservasi.jsx";
+import Administratif from "./pages/pengajuan/administratif/Administratif.jsx";
+import Baptis from "./pages/pengajuan/administratif/Baptis.jsx";
+import JemaatBaru from "./pages/pengajuan/administratif/JemaatBaru.jsx";
+import Menikah from "./pages/pengajuan/administratif/Menikah.jsx";
+
+import ErrorPage from "./pages/ErrorPage.jsx";
+import NotFound from "./pages/NotFound.jsx";
+import "./index.css";
 
 const router = createBrowserRouter(
   [
     {
-      path: '/',
+      path: "/",
       element: <App />,
       errorElement: <ErrorPage />,
       children: [
         { index: true, element: <Home /> },
-        { path: 'sejarah', element: <Sejarah /> },
-        { path: 'visimisi', element: <VisiMisi /> },
-        { path: 'anak-lahir', element: <AnakLahir /> },
-        { path: 'jemaat-sakit', element: <JemaatSakit /> },
-        { path: 'jemaat-meninggal', element: <JemaatMeninggal /> },
-        { path: 'peta-wilayah', element: <PetaWilayah /> },
-        { path: 'artikel', element: <ArticleList /> },
-        { path: 'artikel/:slug', element: <ArticleDetail /> },
-        { path: 'galeri-foto', element: <GaleriFoto /> },
-        { path: 'galeri-video', element: <GaleriVideo /> },
-        { path: 'panitia', element: <Panitia /> },
-        { path: 'pengajuan', element: <Pengajuan /> },
-        { path: 'pengajuan/reservasi', element: <Reservasi /> },
 
-        // === Dewan ===
-        { path: 'dewan/koinonia', element: <DewanKoinonia /> },
-        { path: 'dewan/marturia', element: <DewanMarturia /> },
-        { path: 'dewan/diakonia', element: <DewanDiakonia /> },
+        // Profil
+        { path: "sejarah", element: <Sejarah /> },
+        { path: "visimisi", element: <VisiMisi /> },
+
+        // Informasi
+        { path: "anak-lahir", element: <AnakLahir /> },
+        { path: "jemaat-sakit", element: <JemaatSakit /> },
+        { path: "jemaat-meninggal", element: <JemaatMeninggal /> },
+        { path: "panitia", element: <Panitia /> },
+
+        // Publikasi
+        { path: "artikel", element: <ArticleList /> },
+        { path: "artikel/:slug", element: <ArticleDetail /> },
+
+        // Peta wilayah
+        { path: "peta-wilayah", element: <PetaWilayah /> },
+
+        // Pengajuan
+        { path: "pengajuan", element: <Pengajuan /> },
+        { path: "pengajuan/reservasi", element: <Reservasi /> },
+
+        // Pengajuan > Administratif
+        { path: "pengajuan/administratif", element: <Administratif /> },
+        { path: "pengajuan/administratif/baptis", element: <Baptis /> },
+        { path: "pengajuan/administratif/jemaat-baru", element: <JemaatBaru /> },
+        { path: "pengajuan/administratif/menikah", element: <Menikah /> },
 
         // 404 dalam layout
-        { path: '404', element: <NotFound /> },
-        { path: '*', element: <NotFound /> },
+        { path: "404", element: <NotFound /> },
+        { path: "*", element: <NotFound /> },
       ],
     },
   ],
   { basename: import.meta.env.BASE_URL }
 );
 
-ReactDOM.createRoot(document.getElementById('root')).render(
+ReactDOM.createRoot(document.getElementById("root")).render(
   <React.StrictMode>
     <RouterProvider router={router} />
   </React.StrictMode>

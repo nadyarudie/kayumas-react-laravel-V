@@ -2,7 +2,7 @@
 
 import React, { useState, useMemo } from 'react';
 import { Link } from 'react-router-dom';
-import { articlesData } from '../data/articles';
+import { articlesData } from "../../data/articles";
 
 // Konsisten dengan ArticleSection.jsx
 const categoryStyles = {

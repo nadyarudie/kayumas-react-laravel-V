@@ -41,7 +41,7 @@ const Pengajuan = () => {
           <div className="max-w-4xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-8">
             {/* Pengajuan Administratif */}
             <div className="will-animate opacity-0 translate-y-10 transition duration-700 bg-white rounded-xl shadow-lg overflow-hidden group transform hover:-translate-y-2">
-              <Link to="#" className="block">
+              <Link to="/pengajuan/administratif" className="block">
                 <div className="p-8 text-center">
                   <div className="flex items-center justify-center w-24 h-24 rounded-full bg-indigo-100 text-primary mx-auto mb-6 group-hover:bg-primary group-hover:text-white transition-colors duration-300">
                     <svg className="w-12 h-12" fill="none" stroke="currentColor" viewBox="0 0 24 24">
