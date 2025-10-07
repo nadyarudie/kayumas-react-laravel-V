@@ -1,83 +1,145 @@
 // src/pages/Panitia.jsx
-import React, { useEffect, useMemo, useRef, useState } from 'react';
+import React, { useEffect, useMemo, useState } from "react";
 
-const TABS = [
-  { id: 'oikumene', label: 'Oikumene Inklusif' },
-  { id: 'pembangunan', label: 'Pembangunan' },
-  { id: 'hut', label: 'HUT Gereja' },
-  { id: 'gotilon', label: 'Pesta Gotilon' },
-  { id: 'natal', label: 'Natal Umum' },
-];
+function MemberCard({ m }) {
+  const isKetua = m.role?.toLowerCase() === "ketua";
+  return (
+    <div className="member-card will-animate text-center bg-white p-6 rounded-xl shadow-xl transition-all duration-300 hover:-translate-y-1 hover:shadow-2xl relative">
+      <div className="relative">
+        <img
+          src={m.img}
+          alt={m.name}
+          className="w-28 h-28 rounded-full mx-auto mb-6 border-4 border-indigo-100 shadow"
+          loading="lazy"
+        />
+        <span
+          className={[
+            "absolute top-24 left-1/2 -translate-x-1/2 text-xs font-semibold px-4 py-1 rounded-full border-2 border-white",
+            isKetua ? "bg-indigo-500 text-white" : "bg-gray-400 text-white",
+          ].join(" ")}
+        >
+          {m.role}
+        </span>
+      </div>
 
-// Dummy data awal; silakan ganti dengan data nyata.
-const dataPanitia = {
-  oikumene: [
-    { nama: 'Nama Lengkap Anggota Satu', telp: '0812-3456-7890', aktif: '01 Jan 2024 - 31 Des 2026' },
-    { nama: 'Nama Lengkap Anggota Dua', telp: '0812-3456-7891', aktif: '01 Jan 2024 - 31 Des 2026' },
-  ],
-  pembangunan: [
-    { nama: 'Nama Panitia Pembangunan', telp: '0898-7654-3210', aktif: '15 Feb 2023 - 14 Feb 2027' },
-  ],
-  hut: [
-    { nama: 'Nama Panitia HUT', telp: '0811-2233-4455', aktif: '01 Mar 2025 - 30 Sep 2025' },
-  ],
-  gotilon: [],
-  natal: [],
-};
+      <div className="mt-4">
+        <h3 className="name text-primary font-bold text-xl">{m.name}</h3>
+        <p className="detail text-sm text-gray-600 mt-1">
+          {m.phone} • {m.wijk}
+        </p>
+      </div>
 
-const MemberCard = ({ item, delay = 0 }) => (
-  <div
-    className="member-card will-animate bg-white p-6 rounded-xl shadow-lg text-center transform hover:-translate-y-2 transition-transform duration-300"
-    style={{ transitionDelay: `${delay}ms` }}
-    data-name={item.nama}
-  >
-    <img
-      src="https://placehold.co/400x400/a5b4fc/1e1b4b?text=Foto"
-      alt={item.nama}
-      className="w-32 h-32 rounded-full mx-auto mb-4 border-4 border-white shadow-md"
-    />
-    <h3 className="text-xl font-bold text-primary">{item.nama}</h3>
-    <p className="text-gray-600 mt-1">{item.telp}</p>
-    <div className="mt-4 pt-4 border-t border-gray-200">
-      <p className="text-xs text-gray-500 font-medium">MASA JABATAN</p>
-      <p className="text-sm font-semibold text-gray-700">{item.aktif}</p>
+      <div className="period mt-4 pt-4 border-t border-gray-200">
+        <p className="period-title text-[11px] tracking-wide text-gray-400 font-semibold">
+          MASA AKTIF
+        </p>
+        <p className="period-date text-sm text-gray-700 font-medium">
+          {m.period}
+        </p>
+      </div>
     </div>
-  </div>
-);
+  );
+}
 
 export default function Panitia() {
-  const [active, setActive] = useState('oikumene');
-  const [keyword, setKeyword] = useState('');
-  const containerRef = useRef(null);
+  const [activeTab, setActiveTab] = useState("transformasi");
+  const [q, setQ] = useState("");
 
-  const items = useMemo(() => dataPanitia[active] || [], [active]);
+  const tabs = [
+    { id: "transformasi", label: "Transformasi 2024-2028" },
+    { id: "pembangunan", label: "Pembangunan" },
+    { id: "natal", label: "Panitia Natal" },
+  ];
+
+  const data = useMemo(
+    () => ({
+      transformasi: [
+        {
+          name: "Andi Wijaya",
+          role: "Ketua",
+          phone: "0812-3456-7890",
+          wijk: "Wijk 1",
+          period: "01 Jan 2024 - 31 Des 2028",
+          img: "https://placehold.co/400x400/a5b4fc/1e1b4b?text=AW",
+        },
+        {
+          name: "Sari Dewi",
+          role: "Anggota",
+          phone: "0812-3456-7891",
+          wijk: "Wijk 2",
+          period: "01 Jan 2024 - 31 Des 2028",
+          img: "https://placehold.co/400x400/a5b4fc/1e1b4b?text=SD",
+        },
+      ],
+      pembangunan: [
+        {
+          name: "Rahmat Hidayat",
+          role: "Ketua",
+          phone: "0898-7654-3210",
+          wijk: "Wijk 3",
+          period: "15 Feb 2023 - 14 Feb 2027",
+          img: "https://placehold.co/400x400/a5b4fc/1e1b4b?text=RH",
+        },
+      ],
+      natal: [
+        {
+          name: "Putri Anggraini",
+          role: "Ketua",
+          phone: "0811-2233-4455",
+          wijk: "Wijk 4",
+          period: "01 Sep 2025 - 31 Des 2025",
+          img: "https://placehold.co/400x400/a5b4fc/1e1b4b?text=PA",
+        },
+      ],
+    }),
+    []
+  );
+
   const filtered = useMemo(() => {
-    const q = keyword.trim().toLowerCase();
-    if (!q) return items;
-    return items.filter((m) => m.nama.toLowerCase().includes(q));
-  }, [items, keyword]);
+    const list = data[activeTab] ?? [];
+    if (!q.trim()) return list;
+    const s = q.toLowerCase();
+    return list.filter((m) => m.name.toLowerCase().includes(s));
+  }, [q, activeTab, data]);
 
-  // IntersectionObserver lokal untuk animasi .will-animate
+  // Set title
   useEffect(() => {
-    const root = containerRef.current;
-    if (!root) return;
-    const els = root.querySelectorAll('.will-animate');
-    if (!els.length) return;
+    document.title = "Daftar Panitia - HKBP Kayu Mas";
+  }, []);
 
-    const io = new IntersectionObserver(
+  // Re-attach IntersectionObserver setiap kali tab/gird berubah
+  useEffect(() => {
+    const nodes = document.querySelectorAll(".will-animate");
+
+    // Reset state (jaga-jaga)
+    nodes.forEach((n) => n.classList.remove("is-visible"));
+
+    const obs = new IntersectionObserver(
       (entries) => {
-        entries.forEach((entry) => {
-          if (entry.isIntersecting) entry.target.classList.add('is-visible');
+        entries.forEach((e) => {
+          if (e.isIntersecting) e.target.classList.add("is-visible");
         });
       },
       { threshold: 0.1 }
     );
-    els.forEach((el) => io.observe(el));
-    return () => io.disconnect();
-  }, [active, filtered.length]);
+
+    nodes.forEach((n) => obs.observe(n));
+
+    // fallback: pastikan terlihat jika observer telat
+    requestAnimationFrame(() => {
+      nodes.forEach((n) => n.classList.add("is-visible"));
+    });
+
+    return () => obs.disconnect();
+  }, [activeTab, filtered.length]);
+
+  // Reset pencarian saat ganti tab
+  useEffect(() => {
+    setQ("");
+  }, [activeTab]);
 
   return (
-    <main>
+    <>
       {/* Hero */}
       <section
         className="relative h-80 bg-cover bg-center"
@@ -88,15 +150,19 @@ export default function Panitia() {
       >
         <div className="absolute inset-0 bg-black/60 flex items-center justify-center">
           <div className="text-center text-white will-animate">
-            <h1 className="text-5xl md:text-7xl font-bold font-serif">Kepanitiaan</h1>
-            <p className="mt-4 text-lg">Melayani Bersama dalam Satu Tubuh Kristus</p>
+            <h1 className="text-5xl md:text-7xl font-bold font-serif">
+              Kepanitiaan
+            </h1>
+            <p className="mt-4 text-lg">
+              Melayani Bersama dalam Satu Tubuh Kristus
+            </p>
           </div>
         </div>
       </section>
 
-      {/* Tabs + Search */}
-      <section className="py-20">
-        <div className="container mx-auto px-6" ref={containerRef}>
+      {/* Konten */}
+      <section className="py-20 bg-gray-100">
+        <div className="mx-auto w-full max-w-screen-xl px-6">
           {/* Search */}
           <div className="mb-12 will-animate">
             <div className="relative max-w-lg mx-auto">
@@ -117,47 +183,49 @@ export default function Panitia() {
               </span>
               <input
                 type="text"
-                value={keyword}
-                onChange={(e) => setKeyword(e.target.value)}
+                value={q}
+                onChange={(e) => setQ(e.target.value)}
                 placeholder="Cari nama anggota..."
                 className="w-full pl-12 pr-4 py-3 border border-gray-300 rounded-full focus:outline-none focus:ring-2 focus:ring-primary shadow-sm"
               />
             </div>
           </div>
 
-          {/* Tab Buttons */}
+          {/* Tabs */}
           <div className="flex flex-wrap justify-center gap-2 md:gap-4 mb-12 border-b border-gray-300 will-animate">
-            {TABS.map((t) => (
-              <button
-                key={t.id}
-                onClick={() => setActive(t.id)}
-                className={`tab-button font-semibold py-3 px-6 border-b-2 border-transparent transition-all duration-300 text-gray-500 hover:text-primary ${
-                  active === t.id ? 'active text-primary border-primary' : ''
-                }`}
-              >
-                {t.label}
-              </button>
-            ))}
+            {tabs.map((t) => {
+              const active = t.id === activeTab;
+              return (
+                <button
+                  key={t.id}
+                  onClick={() => setActiveTab(t.id)}
+                  className={[
+                    "tab-button font-semibold py-3 px-6 border-b-2 transition-all duration-300",
+                    active
+                      ? "text-primary border-primary"
+                      : "text-gray-500 border-transparent hover:text-primary",
+                  ].join(" ")}
+                >
+                  {t.label}
+                </button>
+              );
+            })}
           </div>
 
-          {/* Content */}
-          {items.length === 0 ? (
-            <p className="text-center text-gray-500 col-span-full">
-              Belum ada data untuk panitia {TABS.find((t) => t.id === active)?.label}.
-            </p>
-          ) : filtered.length === 0 ? (
-            <p className="text-center text-gray-500 col-span-full mt-8">
-              Tidak ada anggota yang cocok dengan pencarian Anda.
-            </p>
-          ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
-              {filtered.map((item, i) => (
-                <MemberCard key={`${active}-${i}`} item={item} delay={i * 100} />
-              ))}
-            </div>
-          )}
+          {/* Grid anggota */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8 will-animate">
+            {filtered.map((m) => (
+              <MemberCard key={`${activeTab}-${m.name}`} m={m} />
+            ))}
+
+            {filtered.length === 0 && (
+              <p className="col-span-full text-center text-gray-500">
+                Tidak ada anggota yang cocok dengan pencarian Anda.
+              </p>
+            )}
+          </div>
         </div>
       </section>
-    </main>
+    </>
   );
 }

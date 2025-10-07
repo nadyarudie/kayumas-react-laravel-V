@@ -114,3 +114,13 @@ h1, h2, h3, h4, h5, h6 {
   opacity: 1;
   pointer-events: auto;
 }
+
+/* Map pulse */
+.nav-link { position:relative; padding-bottom:6px; }
+.nav-link::after { content:''; position:absolute; bottom:0; left:0; width:0; height:2px; background-color: var(--accent-color); transition: width .3s; }
+.nav-link:hover::after { width:100%; }
+.map-point { transition: all .3s ease; cursor: pointer; }
+.map-point.active { background-color: var(--accent-color); color:#fff; transform: scale(1.2); box-shadow:0 0 0 8px rgba(212,175,55,.4); animation: pulse 2s infinite; }
+@keyframes pulse { 0%{box-shadow:0 0 0 0 rgba(212,175,55,.7)} 70%{box-shadow:0 0 0 15px rgba(212,175,55,0)} 100%{box-shadow:0 0 0 0 rgba(212,175,55,0)} }
+.will-animate { opacity:0; transform: translateY(40px); transition: opacity .8s ease, transform .8s ease; }
+.is-visible { opacity:1; transform: translateY(0); }
