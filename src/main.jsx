@@ -26,6 +26,9 @@ import Panitia from "./pages/informasi/Panitia.jsx";
 // Publikasi
 import ArticleList from "./pages/publikasi/ArticleList.jsx";
 import ArticleDetail from "./pages/ArticleDetail.jsx";
+import GaleriFoto from "./pages/publikasi/GaleriFoto.jsx";
+import GaleriVideo from "./pages/publikasi/GaleriVideo.jsx";
+
 
 // Pengajuan
 import Pengajuan from "./pages/pengajuan/Pengajuan.jsx";
@@ -67,6 +70,8 @@ const router = createBrowserRouter(
         // Publikasi
         { path: "artikel", element: <ArticleList /> },
         { path: "artikel/:slug", element: <ArticleDetail /> },
+        { path: "galeri-foto", element: <GaleriFoto /> },
+        { path: "galeri-video", element: <GaleriVideo /> },
 
         // Peta wilayah
         { path: "peta-wilayah", element: <PetaWilayah /> },
