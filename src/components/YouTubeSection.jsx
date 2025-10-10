@@ -1,57 +1,355 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 
-const playlistData = [
-    { videoId: 'Jg7y-2sMocc', title: 'IBADAH MINGGU XI DUNG TRINITATIS', date: '18 Agu 2024' },
-    { videoId: '5aLg-wAlJqA', title: 'IBADAH MINGGU X DUNG TRINITATIS', date: '11 Agu 2024' },
-    { videoId: '00I1gg875CU', title: 'IBADAH MINGGU IX DO TRINITATIS', date: '04 Agu 2024' },
-];
+const API_URL = import.meta.env.VITE_API_BASE_URL;
+const YOUTUBE_API_KEY = import.meta.env.VITE_YOUTUBE_API_KEY;
 
 const YouTubeSection = () => {
-    const [currentVideoId, setCurrentVideoId] = useState(playlistData[0].videoId);
+    const [playlistData, setPlaylistData] = useState([]);
+    const [currentVideoId, setCurrentVideoId] = useState('');
+    const [channelUrl, setChannelUrl] = useState('');
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState(null);
 
-    return (
-        <section className="py-20 bg-white">
-            <div className="container mx-auto px-6">
-                <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-10 will-animate">
-                    <h2 className="text-4xl font-bold text-primary mb-4 md:mb-0">HKBP Channel</h2>
-                    <a href="https://www.youtube.com/@HKBPSolaGratiaKayuMas" target="_blank" rel="noopener noreferrer" className="btn-primary inline-flex items-center text-white font-bold py-3 px-6 rounded-full text-base">
-                        Kunjungi Channel Youtube
-                        <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 ml-2" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 8l4 4m0 0l-4 4m4-4H3" /></svg>
-                    </a>
-                </div>
-                <div className="will-animate lg:h-[420px] grid grid-cols-1 lg:grid-cols-3 lg:gap-10" style={{ transitionDelay: '150ms' }}>
-                    <div className="lg:col-span-2 rounded-xl overflow-hidden shadow-2xl h-full mb-8 lg:mb-0">
-                        <iframe
-                            id="youtube-player"
-                            className="w-full h-full"
-                            src={`https://www.youtube.com/embed/${currentVideoId}?rel=0&autoplay=1`}
-                            title="YouTube video player"
-                            frameBorder="0"
-                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                            allowFullScreen
-                        ></iframe>
-                    </div>
 
-                    <div className="bg-gray-50 p-6 rounded-xl shadow-lg flex flex-col h-full">
-                        <h3 className="font-bold text-xl mb-4 text-primary flex-shrink-0">Video Terbaru</h3>
-                        <div className="custom-scrollbar flex-1 space-y-4 overflow-y-auto pr-2">
-                            {playlistData.map((video) => (
-                                <div
-                                    key={video.videoId}
-                                    className={`playlist-item flex items-center space-x-4 cursor-pointer p-2 rounded-lg hover:bg-gray-200 transition-colors duration-200 ${currentVideoId === video.videoId ? 'bg-gray-200' : ''}`}
-                                    onClick={() => setCurrentVideoId(video.videoId)}
-                                >
-                                    <img src={`https://img.youtube.com/vi/${video.videoId}/mqdefault.jpg`} alt="Video thumbnail" className="w-32 rounded-md aspect-video object-cover flex-shrink-0" />
-                                    <div>
-                                        <h4 className="font-semibold text-sm leading-tight text-gray-800">{video.title}</h4>
-                                        <p className="text-xs text-gray-500 mt-1">{video.date}</p>
-                                    </div>
-                                </div>
-                            ))}
+
+    useEffect(() => {
+        fetchYouTubeData();
+    }, []);
+
+    const extractChannelId = (channelUrl) => {
+        // Extract channel ID from URL
+        // Format: https://www.youtube.com/@ChannelName or /channel/CHANNEL_ID
+        const match = channelUrl.match(/youtube\.com\/@([^\\/]+)/);
+        if (match) {
+            return match[1]; // This is the channel handle, we'll need to get the channel ID
+        }
+        const channelMatch = channelUrl.match(/youtube\.com\/channel\/([^\\/]+)/);
+        if (channelMatch) {
+            return channelMatch[1];
+        }
+        return null;
+    };
+
+    const fetchFromBackupAPI = async () => {
+        // Fallback: fetch from your backend API
+        try {
+            const response = await fetch(`${API_URL}/videos/youtube`);
+            if (!response.ok) {
+                throw new Error('Gagal mengambil data dari backup API');
+            }
+            const result = await response.json();
+            
+            if (result.data && Array.isArray(result.data)) {
+                const videos = result.data.map(item => {
+                    // Extract video ID from YouTube URL
+                    let videoId = '';
+                    if (item.youtube_url) {
+                        const regex = /(?:youtube\.com\/(?:[^\\/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/)([^"&?\\/\s]{11})/;
+                        const match = item.youtube_url.match(regex);
+                        if (match) {
+                            videoId = match[1];
+                        }
+                    }
+                    
+                    return {
+                        videoId: videoId,
+                        title: item.judul || 'Video',
+                        date: item.created_at ? new Date(item.created_at).toLocaleDateString('id-ID', { 
+                            day: '2-digit', 
+                            month: 'short', 
+                            year: 'numeric' 
+                        }) : '',
+                        thumbnail: `https://img.youtube.com/vi/${videoId}/mqdefault.jpg`
+                    };
+                }).filter(video => video.videoId);
+                
+                return videos;
+            }
+            return [];
+        } catch (err) {
+            console.error('Backup API error:', err);
+            return [];
+        }
+    };
+
+    const fetchYouTubeData = async () => {
+        try {
+            setLoading(true);
+            
+            // 1. Fetch channel URL from your API
+            const channelResponse = await fetch(`${API_URL}/videos/youtube/channel-youtube`);
+            if (!channelResponse.ok) {
+                throw new Error('Gagal mengambil data channel');
+            }
+            const channelData = await channelResponse.json();
+            
+            if (channelData && channelData.youtube_url) {
+                setChannelUrl(channelData.youtube_url);
+                
+                // 2. Extract channel handle/ID from URL
+                const channelHandle = extractChannelId(channelData.youtube_url);
+                
+                if (channelHandle) {
+                    try {
+                        // 3. Search for channel to get channel ID
+                        const searchResponse = await fetch(
+                            `https://www.googleapis.com/youtube/v3/search?part=snippet&type=channel&q=${channelHandle}&key=${YOUTUBE_API_KEY}`
+                        );
+                        const searchData = await searchResponse.json();
+                        
+                        // Check if YouTube API has error (quota exceeded, invalid key, etc)
+                        if (searchData.error) {
+                            console.warn('YouTube API error:', searchData.error.message);
+                            // Fallback to backup API
+                            const backupVideos = await fetchFromBackupAPI();
+                            setPlaylistData(backupVideos);
+                            if (backupVideos.length > 0) {
+                                setCurrentVideoId(backupVideos[0].videoId);
+                            }
+                        } else if (searchData.items && searchData.items.length > 0) {
+                            const channelId = searchData.items[0].id.channelId;
+                            
+                            // 4. Fetch videos from the channel
+                            const videosResponse = await fetch(
+                                `https://www.googleapis.com/youtube/v3/search?key=${YOUTUBE_API_KEY}&channelId=${channelId}&part=snippet,id&order=date&maxResults=10&type=video`
+                            );
+                            const videosData = await videosResponse.json();
+                            
+                            // Check if YouTube API has error
+                            if (videosData.error) {
+                                console.warn('YouTube API error:', videosData.error.message);
+                                // Fallback to backup API
+                                const backupVideos = await fetchFromBackupAPI();
+                                setPlaylistData(backupVideos);
+                                if (backupVideos.length > 0) {
+                                    setCurrentVideoId(backupVideos[0].videoId);
+                                }
+                            } else if (videosData.items && videosData.items.length > 0) {
+                                const videos = videosData.items.map(item => ({
+                                    videoId: item.id.videoId,
+                                    title: item.snippet.title,
+                                    date: new Date(item.snippet.publishedAt).toLocaleDateString('id-ID', { 
+                                        day: '2-digit', 
+                                        month: 'short', 
+                                        year: 'numeric' 
+                                    }),
+                                    thumbnail: item.snippet.thumbnails.medium.url
+                                }));
+                                
+                                setPlaylistData(videos);
+                                if (videos.length > 0) {
+                                    setCurrentVideoId(videos[0].videoId);
+                                }
+                            } else {
+                                // No videos from YouTube API, try backup
+                                const backupVideos = await fetchFromBackupAPI();
+                                setPlaylistData(backupVideos);
+                                if (backupVideos.length > 0) {
+                                    setCurrentVideoId(backupVideos[0].videoId);
+                                }
+                            }
+                        } else {
+                            // No channel found, try backup
+                            const backupVideos = await fetchFromBackupAPI();
+                            setPlaylistData(backupVideos);
+                            if (backupVideos.length > 0) {
+                                setCurrentVideoId(backupVideos[0].videoId);
+                            }
+                        }
+                    } catch (youtubeError) {
+                        console.error('YouTube API fetch error:', youtubeError);
+                        // Fallback to backup API on any error
+                        const backupVideos = await fetchFromBackupAPI();
+                        setPlaylistData(backupVideos);
+                        if (backupVideos.length > 0) {
+                            setCurrentVideoId(backupVideos[0].videoId);
+                        }
+                    }
+                }
+            }
+            
+            setLoading(false);
+        } catch (err) {
+            console.error('Error fetching YouTube data:', err);
+            setError(err.message);
+            setLoading(false);
+        }
+    };
+
+    if (loading) {
+        return (
+            <section className="py-20 bg-white">
+                <div className="container mx-auto px-6">
+                    <div className="flex items-center justify-center h-96">
+                        <div className="text-center">
+                            <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-red-600 mb-4"></div>
+                            <p className="text-gray-600">Memuat data YouTube...</p>
                         </div>
                     </div>
                 </div>
+            </section>
+        );
+    }
+
+    if (error) {
+        return (
+            <section className="py-20 bg-white">
+                <div className="container mx-auto px-6">
+                    <div className="flex items-center justify-center h-96">
+                        <div className="text-center">
+                            <div className="text-red-500 mb-4">
+                                <svg className="w-16 h-16 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                </svg>
+                            </div>
+                            <p className="text-gray-600 mb-4">{error}</p>
+                            <button 
+                                onClick={fetchYouTubeData}
+                                className="bg-red-600 text-white px-6 py-2 rounded-full hover:bg-red-700 transition-colors"
+                            >
+                                Coba Lagi
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        );
+    }
+
+    return (
+        <section className="py-20 bg-gradient-to-b from-white to-gray-50">
+            <div className="container mx-auto px-6">
+                <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-12">
+                    <div>
+                        <h2 className="text-4xl md:text-5xl font-bold text-gray-900 mb-2">
+                            HKBP Channel
+                        </h2>
+                        <p className="text-gray-600">Tonton video ibadah dan kegiatan gereja terbaru</p>
+                    </div>
+                    {channelUrl && (
+                        <a 
+                            href={channelUrl} 
+                            target="_blank" 
+                            rel="noopener noreferrer" 
+                            className="mt-4 md:mt-0 inline-flex items-center bg-red-600 hover:bg-red-700 text-white font-semibold py-3 px-8 rounded-full transition-all duration-300 shadow-lg hover:shadow-xl transform hover:-translate-y-1"
+                        >
+                            <svg className="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 24 24">
+                                <path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/>
+                            </svg>
+                            Kunjungi Channel
+                            <svg className="w-5 h-5 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 8l4 4m0 0l-4 4m4-4H3" />
+                            </svg>
+                        </a>
+                    )}
+                </div>
+
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:gap-8">
+                    {/* Video Player */}
+                    <div className="lg:col-span-2">
+                        <div className="relative rounded-2xl overflow-hidden shadow-2xl bg-black" style={{ paddingBottom: '56.25%' }}>
+                            {currentVideoId ? (
+                                <iframe
+                                    className="absolute top-0 left-0 w-full h-full"
+                                    src={`https://www.youtube.com/embed/${currentVideoId}?rel=0`}
+                                    title="YouTube video player"
+                                    frameBorder="0"
+                                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                                    allowFullScreen
+                                ></iframe>
+                            ) : (
+                                <div className="absolute top-0 left-0 w-full h-full flex items-center justify-center">
+                                    <p className="text-white">Tidak ada video tersedia</p>
+                                </div>
+                            )}
+                        </div>
+                    </div>
+
+                    {/* Playlist */}
+                    <div className="bg-white rounded-2xl shadow-xl p-6 flex flex-col max-h-[500px]">
+                        <div className="flex items-center justify-between mb-6 flex-shrink-0">
+                            <h3 className="font-bold text-xl text-gray-900">Video Terbaru</h3>
+                            <span className="bg-red-100 text-red-600 text-xs font-semibold px-3 py-1 rounded-full">
+                                {playlistData.length} Video
+                            </span>
+                        </div>
+                        
+                        {playlistData.length > 0 ? (
+                            <div className="flex-1 overflow-y-auto space-y-3 pr-2 custom-scrollbar">
+                                {playlistData.map((video) => (
+                                    <div
+                                        key={video.videoId}
+                                        className={`group cursor-pointer p-3 rounded-xl transition-all duration-300 ${
+                                            currentVideoId === video.videoId 
+                                                ? 'bg-red-50 border-2 border-red-200 shadow-md' 
+                                                : 'bg-gray-50 hover:bg-gray-100 border-2 border-transparent'
+                                        }`}
+                                        onClick={() => setCurrentVideoId(video.videoId)}
+                                    >
+                                        <div className="flex gap-3">
+                                            <div className="relative flex-shrink-0">
+                                                <img 
+                                                    src={video.thumbnail || `https://img.youtube.com/vi/${video.videoId}/mqdefault.jpg`}
+                                                    alt={video.title}
+                                                    className="w-28 h-16 rounded-lg object-cover"
+                                                />
+                                                <div className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-0 group-hover:bg-opacity-30 transition-all duration-300 rounded-lg">
+                                                    <svg className="w-8 h-8 text-white opacity-0 group-hover:opacity-100 transition-all duration-300" fill="currentColor" viewBox="0 0 24 24">
+                                                        <path d="M8 5v14l11-7z"/>
+                                                    </svg>
+                                                </div>
+                                            </div>
+                                            <div className="flex-1 min-w-0">
+                                                <h4 className="font-semibold text-sm leading-tight text-gray-900 line-clamp-2 mb-2">
+                                                    {video.title}
+                                                </h4>
+                                                <p className="text-xs text-gray-500 flex items-center">
+                                                    <svg className="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                                                    </svg>
+                                                    {video.date}
+                                                </p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        ) : (
+                            <div className="flex-1 flex items-center justify-center text-gray-500">
+                                <div className="text-center">
+                                    <svg className="w-16 h-16 mx-auto mb-4 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                                    </svg>
+                                    <p>Belum ada video</p>
+                                </div>
+                            </div>
+                        )}
+                    </div>
+                </div>
             </div>
+
+            <style jsx>{`
+                .custom-scrollbar::-webkit-scrollbar {
+                    width: 6px;
+                }
+                .custom-scrollbar::-webkit-scrollbar-track {
+                    background: #f1f1f1;
+                    border-radius: 10px;
+                }
+                .custom-scrollbar::-webkit-scrollbar-thumb {
+                    background: #cbd5e1;
+                    border-radius: 10px;
+                }
+                .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+                    background: #94a3b8;
+                }
+                .line-clamp-2 {
+                    display: -webkit-box;
+                    -webkit-line-clamp: 2;
+                    -webkit-box-orient: vertical;
+                    overflow: hidden;
+                }
+            `}</style>
         </section>
     );
 };
