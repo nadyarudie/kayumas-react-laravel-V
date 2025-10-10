@@ -14,6 +14,7 @@ const YouTubeSection = () => {
 
     useEffect(() => {
         fetchYouTubeData();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
     const extractChannelId = (channelUrl) => {
