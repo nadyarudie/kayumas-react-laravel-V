@@ -93,7 +93,7 @@ function App() {
       />
       <ScrollToTop />
       <div ref={contentRef}>
-        <Outlet />
+        <Outlet/>
       </div>
       <Footer />
     </>
