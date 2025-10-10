@@ -71,9 +71,6 @@ const Header = ({
                   <li>
                     <Link to="/parhalado" className="block w-56 bg-primary hover:bg-blue-900 px-4 py-2 shadow-xl">Parhalado</Link>
                   </li>
-                  <li>
-                    <Link to="/majelis-gereja" className="block w-56 bg-primary hover:bg-blue-900 px-4 py-2 rounded-b-md shadow-xl">Majelis Gereja</Link>
-                  </li>
                 </ul>
               </div>
 
@@ -110,9 +107,9 @@ const Header = ({
                   </svg>
                 </button>
                 <ul className="absolute left-0 top-full pt-2 hidden group-hover:block group-focus-within:block z-50">
-                  <li><Link to="/dewan/koinonia" className="block w-56 bg-primary hover:bg-blue-900 px-4 py-2 rounded-t-md shadow-xl">Koinonia</Link></li>
-                  <li><Link to="/dewan/marturia" className="block w-56 bg-primary hover:bg-blue-900 px-4 py-2 shadow-xl">Marturia</Link></li>
-                  <li><Link to="/dewan/diakonia" className="block w-56 bg-primary hover:bg-blue-900 px-4 py-2 rounded-b-md shadow-xl">Diakonia</Link></li>
+                  <li><Link to="/koinonia" className="block w-56 bg-primary hover:bg-blue-900 px-4 py-2 rounded-t-md shadow-xl">Koinonia</Link></li>
+                  <li><Link to="/marturia" className="block w-56 bg-primary hover:bg-blue-900 px-4 py-2 shadow-xl">Marturia</Link></li>
+                  <li><Link to="/diakonia" className="block w-56 bg-primary hover:bg-blue-900 px-4 py-2 rounded-b-md shadow-xl">Diakonia</Link></li>
                 </ul>
               </div>
 
@@ -262,7 +259,6 @@ const Header = ({
                 <Link to="/sejarah" className="block py-1" onClick={closeMobileMenu}>Sejarah</Link>
                 <Link to="/visimisi" className="block py-1" onClick={closeMobileMenu}>Visi & Misi</Link>
                 <Link to="/parhalado" className="block py-1" onClick={closeMobileMenu}>Parhalado</Link>
-                <Link to="/majelis-gereja" className="block py-1" onClick={closeMobileMenu}>Majelis Gereja</Link>
               </div>
             )}
 

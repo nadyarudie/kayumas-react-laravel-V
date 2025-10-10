@@ -10,6 +10,12 @@ import PetaWilayah from "./pages/PetaWilayah.jsx";
 // Profil
 import Sejarah from "./pages/profil/Sejarah.jsx";
 import VisiMisi from "./pages/profil/VisiMisi.jsx";
+import Parhalado from './pages/profil/Parhalado.jsx';
+
+// Dewan
+import Diakonia from "./pages/dewan/Diakonia.jsx";
+import Koinonia from "./pages/dewan/Koinonia.jsx";
+import Marturia from "./pages/dewan/Marturia.jsx";
 
 // Informasi
 import AnakLahir from "./pages/informasi/AnakLahir.jsx";
@@ -45,6 +51,12 @@ const router = createBrowserRouter(
         // Profil
         { path: "sejarah", element: <Sejarah /> },
         { path: "visimisi", element: <VisiMisi /> },
+        { path: 'parhalado', element: <Parhalado /> },
+
+        // Dewan
+        { path: "diakonia", element: <Diakonia /> },
+        { path: "koinonia", element: <Koinonia /> },
+        { path: "marturia", element: <Marturia /> },
 
         // Informasi
         { path: "anak-lahir", element: <AnakLahir /> },
