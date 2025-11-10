@@ -1,8 +1,9 @@
 // src/pages/Wijk.jsx
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState, useRef} from 'react';
 
 export default function Wijk() {
   const [activeId, setActiveId] = useState('1');
+  const mapRef = useRef(null);
 
   // Data Wijk
   const wijkData = useMemo(
@@ -41,20 +42,7 @@ export default function Wijk() {
   );
 
   // Posisi titik di peta
-  const points = useMemo(
-    () => ([
-      { id: '1', label: '1', top: '20%', left: '30%' },
-      { id: '2', label: '2', top: '35%', left: '50%' },
-      { id: '3', label: '3', top: '50%', left: '25%' },
-      { id: '4', label: '4', top: '65%', left: '45%' },
-      { id: '5', label: '5', top: '25%', left: '70%' },
-      { id: '6', label: '6', top: '45%', left: '80%' },
-      { id: '7', label: '7', top: '70%', left: '65%' },
-      { id: '8', label: '8', top: '80%', left: '30%' },
-      { id: '9', label: 'P', top: '55%', left: '60%' },
-    ]),
-    []
-  );
+  
 
   // Animasi muncul (sesuai kelas will-animate/is-visible)
   useEffect(() => {
@@ -66,6 +54,43 @@ export default function Wijk() {
     els.forEach((el) => io.observe(el));
     return () => io.disconnect();
   }, []);
+
+  useEffect(() => {
+    const scriptId = 'arcgis-components-script';
+
+    if (!document.getElementById(scriptId)) {
+      const script = document.createElement('script');
+      script.id = scriptId;
+      script.type = 'module';
+      script.src = 'https://js.arcgis.com/embeddable-components/4.33/arcgis-embeddable-components.esm.js';
+      document.head.appendChild(script);
+    }
+
+    const handleMapSelect = (event) => {
+      // This event fires when a user clicks a popup in the map
+      const feature = event.detail.selectedFeature;
+      if (feature && feature.attributes) {
+       
+        const wijkIdFromMap = feature.attributes.FIELD_NAME; 
+
+        if (wijkIdFromMap && wijkData[String(wijkIdFromMap)]) {
+          setActiveId(String(wijkIdFromMap));
+        }
+      }
+    };
+
+    const mapElement = mapRef.current;
+    if (mapElement) {
+      // The map component fires a custom DOM event named 'arcgis-embedded-map-popup-select'
+      mapElement.addEventListener('arcgis-embedded-map-popup-select', handleMapSelect);
+    }
+
+    return () => {
+      if (mapElement) {
+        mapElement.removeEventListener('arcgis-embedded-map-popup-select', handleMapSelect);
+      }
+    };
+  }, [wijkData]);
 
   const data = wijkData[activeId];
 
@@ -93,29 +118,19 @@ export default function Wijk() {
               className="lg:col-span-2 relative will-animate bg-gray-200 rounded-lg overflow-hidden shadow-lg"
               style={{ height: 600 }}
             >
-              <div
-                className="absolute inset-0 bg-cover bg-center"
-                style={{
-                  backgroundImage:
-                    "url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA4MDAgNjAwIj48cGF0aCBmaWxsPSIjZjNmNGY2IiBkPSJNMCAwaDgwMHY2MDBIMHoiLz48cGF0aCBmaWxsPSIjZTBlN2ZmIiBkPSJNNzU2IDkwYy0yMyAyNC00NyA0MC04NiA0OGMtMTQgMy0yOCAxLTM5LTJjLTEzLTMtMjEtMTAtMjktMThjLTEyLTEzLTIxLTMzLTM2LTM5Yy0yMy05LTUwIDAtNjEgMTNjLTcgOC0xOCAxMS0yOCAxMGgtMWMtOC0xLTktMTEtMTUtMThjLTYtNi0xNS04LTIzLTdjLTEzIDAtMjcgNS0zOSA5Yy05IDMtMTggNS0yOCA0Yy0xOC0yLTMzLTEzLTQ5LTE3Yy0yMS02LTM2LTMtNTQgOGMtNiA0LTQgMTYgMiAyMmM5IDktMTYgNDEtNSA1M2MyIDIgMiAzIDQgNGMxMCAxMCAxNSA0MSAyNiA1MWMxMyAxMSA0NCAxNSA1OCAxMmMxMS0zIDEwLTIyIDIyLTI5YzcgLTQgMTQgLTUgMjEgLTdjMTEtMyAyMy0xIDM0IDJjMTcgNCAyOCA1IDQ0IDJjMTItMiAyNC0xNyAzOC0xNGMxMyAyIDI1IDEzIDM4IDE5YzE1IDcgMjggMTUgNDYgMTRjMTctMSAxNi0yMiAyNS0zM2M2LTcgMTUtOCAyMy02YzEzIDIgMTggMTQgMzEgMTFjMTEtMiAyMy0xNyAzNC0yMWMxNS02IDIyLTIgMzYgN2MxMCA2IDEzLTEzIDctMjBjLTEwLTEwLTI0LTEzLTM3LTE5Yy04LTQtMTQtMTAtMjQtMTFjLTctMS0xMS05LTUtMTVjNy04IDIwLTEwIDI5LTExczE0LTkgMjAtMTRjOC03IDE3LTEwIDI2LTJjMTMgMTEgMzEtMyA0MC0xMWM1MS00NiA0MC05OCAwLTEzN2MtNi01LTQgMTAtMTEgMTJjLTkgMy0xOCAwLTI3LTJjLTEyLTMtMTctMTYtMjktMTljLTExLTQtMjEgMC0zMSAxMGMtNyA2LTcgMTQtMTYgMTZ6Ii8+PC9zdmc+')",
-                }}
-              />
-
-              {/* Points */}
-              {points.map((p) => (
-                <button
-                  key={p.id}
-                  className={[
-                    'map-point absolute w-10 h-10 bg-primary text-white rounded-full flex items-center justify-center font-bold text-lg',
-                    activeId === p.id ? 'active' : '',
-                  ].join(' ')}
-                  style={{ top: p.top, left: p.left }}
-                  onClick={() => setActiveId(p.id)}
-                  aria-label={`Wijk ${p.label}`}
-                >
-                  {p.label}
-                </button>
-              ))}
+              <arcgis-embedded-map
+                ref={mapRef}
+                style={{ width: '100%', height: '100%' }} // Fills parent div
+                item-id="7d0df3b2f8424ae390c98a40f63accc3"
+                theme="dark"
+                heading-enabled
+                information-enabled
+                share-enabled
+                center="106.93148076171697,-6.231147410947232"
+                scale="288895.277144"
+                portal-url="https://www.arcgis.com"
+              >
+              </arcgis-embedded-map>
             </div>
 
             {/* Details */}
@@ -175,15 +190,3 @@ export default function Wijk() {
     </main>
   );
 }
-
-/* Tailwind helper (opsional, kalau belum ada) */
-/* tambahkan di index.css kamu:
-.nav-link { position:relative; padding-bottom:6px; }
-.nav-link::after { content:''; position:absolute; bottom:0; left:0; width:0; height:2px; background-color: var(--accent-color); transition: width .3s; }
-.nav-link:hover::after { width:100%; }
-.map-point { transition: all .3s ease; cursor: pointer; }
-.map-point.active { background-color: var(--accent-color); color:#fff; transform: scale(1.2); box-shadow:0 0 0 8px rgba(212,175,55,.4); animation: pulse 2s infinite; }
-@keyframes pulse { 0%{box-shadow:0 0 0 0 rgba(212,175,55,.7)} 70%{box-shadow:0 0 0 15px rgba(212,175,55,0)} 100%{box-shadow:0 0 0 0 rgba(212,175,55,0)} }
-.will-animate { opacity:0; transform: translateY(40px); transition: opacity .8s ease, transform .8s ease; }
-.is-visible { opacity:1; transform: translateY(0); }
-*/

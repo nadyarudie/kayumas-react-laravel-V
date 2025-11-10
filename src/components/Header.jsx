@@ -99,7 +99,9 @@ const Header = ({
               </div>
 
               {/* 4. DEWAN */}
-              <div className="relative group">
+
+              <Link to="/dewan" className="nav-link">DEWAN</Link>
+              {/* <div className="relative group">
                 <button type="button" className="nav-link flex items-center">
                   DEWAN
                   <svg className="h-4 w-4 ml-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -111,7 +113,7 @@ const Header = ({
                   <li><Link to="/marturia" className="block w-56 bg-primary hover:bg-blue-900 px-4 py-2 shadow-xl">Marturia</Link></li>
                   <li><Link to="/diakonia" className="block w-56 bg-primary hover:bg-blue-900 px-4 py-2 rounded-b-md shadow-xl">Diakonia</Link></li>
                 </ul>
-              </div>
+              </div> */}
 
               {/* 5. PUBLIKASI */}
               <div className="relative group">

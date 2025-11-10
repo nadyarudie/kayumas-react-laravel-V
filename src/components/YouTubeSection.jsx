@@ -1,181 +1,85 @@
 import React, { useState, useEffect } from 'react';
 
 const API_URL = import.meta.env.VITE_API_BASE_URL;
-const YOUTUBE_API_KEY = import.meta.env.VITE_YOUTUBE_API_KEY;
 
 const YouTubeSection = () => {
     const [playlistData, setPlaylistData] = useState([]);
     const [currentVideoId, setCurrentVideoId] = useState('');
-    const [channelUrl, setChannelUrl] = useState('');
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
 
-
-
     useEffect(() => {
-        fetchYouTubeData();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, []);
+        const ac = new AbortController();
+        let cancelled = false;
 
-    const extractChannelId = (channelUrl) => {
-        // Extract channel ID from URL
-        // Format: https://www.youtube.com/@ChannelName or /channel/CHANNEL_ID
-        const match = channelUrl.match(/youtube\.com\/@([^\\/]+)/);
-        if (match) {
-            return match[1]; // This is the channel handle, we'll need to get the channel ID
-        }
-        const channelMatch = channelUrl.match(/youtube\.com\/channel\/([^\\/]+)/);
-        if (channelMatch) {
-            return channelMatch[1];
-        }
-        return null;
-    };
-
-    const fetchFromBackupAPI = async () => {
-        // Fallback: fetch from your backend API
-        try {
-            const response = await fetch(`${API_URL}/videos/youtube`);
-            if (!response.ok) {
-                throw new Error('Gagal mengambil data dari backup API');
-            }
-            const result = await response.json();
-            
-            if (result.data && Array.isArray(result.data)) {
-                const videos = result.data.map(item => {
-                    // Extract video ID from YouTube URL
-                    let videoId = '';
-                    if (item.youtube_url) {
-                        const regex = /(?:youtube\.com\/(?:[^\\/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/)([^"&?\\/\s]{11})/;
-                        const match = item.youtube_url.match(regex);
-                        if (match) {
-                            videoId = match[1];
-                        }
-                    }
-                    
-                    return {
-                        videoId: videoId,
-                        title: item.judul || 'Video',
-                        date: item.created_at ? new Date(item.created_at).toLocaleDateString('id-ID', { 
-                            day: '2-digit', 
-                            month: 'short', 
-                            year: 'numeric' 
-                        }) : '',
-                        thumbnail: `https://img.youtube.com/vi/${videoId}/mqdefault.jpg`
-                    };
-                }).filter(video => video.videoId);
-                
-                return videos;
-            }
-            return [];
-        } catch (err) {
-            console.error('Backup API error:', err);
-            return [];
-        }
-    };
-
-    const fetchYouTubeData = async () => {
-        try {
+        const fetchVideos = async () => {
+            if (cancelled) return;
             setLoading(true);
-            
-            // 1. Fetch channel URL from your API
-            const channelResponse = await fetch(`${API_URL}/videos/youtube/channel-youtube`);
-            if (!channelResponse.ok) {
-                throw new Error('Gagal mengambil data channel');
-            }
-            const channelData = await channelResponse.json();
-            
-            if (channelData && channelData.youtube_url) {
-                setChannelUrl(channelData.youtube_url);
+            setError(null);
+
+            try {
+                const res = await fetch(`${API_URL}/videos/youtube`, { signal: ac.signal });
                 
-                // 2. Extract channel handle/ID from URL
-                const channelHandle = extractChannelId(channelData.youtube_url);
+                if (!res.ok) {
+                    throw new Error('Gagal mengambil data video');
+                }
+
+                const json = await res.json();
+                const arr = json.data || [];
                 
-                if (channelHandle) {
-                    try {
-                        // 3. Search for channel to get channel ID
-                        const searchResponse = await fetch(
-                            `https://www.googleapis.com/youtube/v3/search?part=snippet&type=channel&q=${channelHandle}&key=${YOUTUBE_API_KEY}`
+                const videos = arr
+                    .map((v) => {
+                        // Extract video ID from YouTube URL
+                        const match = (v.youtube_url || '').match(
+                            /(?:youtube\.com\/(?:[^/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/)([^"&?/\s]{11})/
                         );
-                        const searchData = await searchResponse.json();
+                        const videoId = match ? match[1] : '';
                         
-                        // Check if YouTube API has error (quota exceeded, invalid key, etc)
-                        if (searchData.error) {
-                            console.warn('YouTube API error:', searchData.error.message);
-                            // Fallback to backup API
-                            const backupVideos = await fetchFromBackupAPI();
-                            setPlaylistData(backupVideos);
-                            if (backupVideos.length > 0) {
-                                setCurrentVideoId(backupVideos[0].videoId);
-                            }
-                        } else if (searchData.items && searchData.items.length > 0) {
-                            const channelId = searchData.items[0].id.channelId;
-                            
-                            // 4. Fetch videos from the channel
-                            const videosResponse = await fetch(
-                                `https://www.googleapis.com/youtube/v3/search?key=${YOUTUBE_API_KEY}&channelId=${channelId}&part=snippet,id&order=date&maxResults=10&type=video`
-                            );
-                            const videosData = await videosResponse.json();
-                            
-                            // Check if YouTube API has error
-                            if (videosData.error) {
-                                console.warn('YouTube API error:', videosData.error.message);
-                                // Fallback to backup API
-                                const backupVideos = await fetchFromBackupAPI();
-                                setPlaylistData(backupVideos);
-                                if (backupVideos.length > 0) {
-                                    setCurrentVideoId(backupVideos[0].videoId);
-                                }
-                            } else if (videosData.items && videosData.items.length > 0) {
-                                const videos = videosData.items.map(item => ({
-                                    videoId: item.id.videoId,
-                                    title: item.snippet.title,
-                                    date: new Date(item.snippet.publishedAt).toLocaleDateString('id-ID', { 
-                                        day: '2-digit', 
-                                        month: 'short', 
-                                        year: 'numeric' 
-                                    }),
-                                    thumbnail: item.snippet.thumbnails.medium.url
-                                }));
-                                
-                                setPlaylistData(videos);
-                                if (videos.length > 0) {
-                                    setCurrentVideoId(videos[0].videoId);
-                                }
-                            } else {
-                                // No videos from YouTube API, try backup
-                                const backupVideos = await fetchFromBackupAPI();
-                                setPlaylistData(backupVideos);
-                                if (backupVideos.length > 0) {
-                                    setCurrentVideoId(backupVideos[0].videoId);
-                                }
-                            }
-                        } else {
-                            // No channel found, try backup
-                            const backupVideos = await fetchFromBackupAPI();
-                            setPlaylistData(backupVideos);
-                            if (backupVideos.length > 0) {
-                                setCurrentVideoId(backupVideos[0].videoId);
-                            }
-                        }
-                    } catch (youtubeError) {
-                        console.error('YouTube API fetch error:', youtubeError);
-                        // Fallback to backup API on any error
-                        const backupVideos = await fetchFromBackupAPI();
-                        setPlaylistData(backupVideos);
-                        if (backupVideos.length > 0) {
-                            setCurrentVideoId(backupVideos[0].videoId);
-                        }
-                    }
+                        if (!videoId) return null;
+                        
+                        return {
+                            videoId,
+                            title: v.judul || 'Video Tanpa Judul',
+                            date: v.created_at
+                                ? new Date(v.created_at).toLocaleDateString('id-ID', {
+                                    day: '2-digit',
+                                    month: 'short',
+                                    year: 'numeric',
+                                })
+                                : '',
+                            thumbnail: `https://img.youtube.com/vi/${videoId}/mqdefault.jpg`,
+                        };
+                    })
+                    .filter(Boolean);
+
+                if (cancelled) return;
+                
+                setPlaylistData(videos);
+                
+                if (videos.length > 0) {
+                    setCurrentVideoId(videos[0].videoId);
+                } else {
+                    setError('Tidak ada video yang bisa ditampilkan saat ini.');
+                }
+            } catch (err) {
+                if (!cancelled) {
+                    console.error('Error fetching YouTube data:', err);
+                    setError(err.message || 'Gagal memuat data');
+                }
+            } finally {
+                if (!cancelled) {
+                    setLoading(false);
                 }
             }
-            
-            setLoading(false);
-        } catch (err) {
-            console.error('Error fetching YouTube data:', err);
-            setError(err.message);
-            setLoading(false);
-        }
-    };
+        };
+
+        fetchVideos();
+
+        return () => {
+            cancelled = true;
+            ac.abort();
+        };
+    }, []);
 
     if (loading) {
         return (
@@ -204,12 +108,6 @@ const YouTubeSection = () => {
                                 </svg>
                             </div>
                             <p className="text-gray-600 mb-4">{error}</p>
-                            <button 
-                                onClick={fetchYouTubeData}
-                                className="bg-red-600 text-white px-6 py-2 rounded-full hover:bg-red-700 transition-colors"
-                            >
-                                Coba Lagi
-                            </button>
                         </div>
                     </div>
                 </div>
@@ -227,9 +125,9 @@ const YouTubeSection = () => {
                         </h2>
                         <p className="text-gray-600">Tonton video ibadah dan kegiatan gereja terbaru</p>
                     </div>
-                    {channelUrl && (
+                    {currentVideoId && (
                         <a 
-                            href={channelUrl} 
+                            href={`https://www.youtube.com/watch?v=${currentVideoId}`} 
                             target="_blank" 
                             rel="noopener noreferrer" 
                             className="mt-4 md:mt-0 inline-flex items-center bg-red-600 hover:bg-red-700 text-white font-semibold py-3 px-8 rounded-full transition-all duration-300 shadow-lg hover:shadow-xl transform hover:-translate-y-1"
@@ -237,7 +135,7 @@ const YouTubeSection = () => {
                             <svg className="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 24 24">
                                 <path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/>
                             </svg>
-                            Kunjungi Channel
+                            Tonton di YouTube
                             <svg className="w-5 h-5 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 8l4 4m0 0l-4 4m4-4H3" />
                             </svg>
@@ -269,7 +167,7 @@ const YouTubeSection = () => {
                     {/* Playlist */}
                     <div className="bg-white rounded-2xl shadow-xl p-6 flex flex-col max-h-[500px]">
                         <div className="flex items-center justify-between mb-6 flex-shrink-0">
-                            <h3 className="font-bold text-xl text-gray-900">Video Terbaru</h3>
+                            <h3 className="font-bold text-xl text-gray-900">Video Unggulan</h3>
                             <span className="bg-red-100 text-red-600 text-xs font-semibold px-3 py-1 rounded-full">
                                 {playlistData.length} Video
                             </span>
@@ -290,7 +188,7 @@ const YouTubeSection = () => {
                                         <div className="flex gap-3">
                                             <div className="relative flex-shrink-0">
                                                 <img 
-                                                    src={video.thumbnail || `https://img.youtube.com/vi/${video.videoId}/mqdefault.jpg`}
+                                                    src={video.thumbnail}
                                                     alt={video.title}
                                                     className="w-28 h-16 rounded-lg object-cover"
                                                 />

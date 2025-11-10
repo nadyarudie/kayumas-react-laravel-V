@@ -67,7 +67,7 @@ const Footer = () => {
               <span className="absolute bottom-0 left-0 w-12 h-0.5 bg-accent"></span>
             </h3>
             <ul className="grid gap-y-3 text-sm">
-              <li><Link to="/koinonia" className="text-blue-200 hover:text-white transition-colors duration-200">Dewan Koinonia</Link></li>
+              <li><Link to="/koinonia" className="text-blue-200 hover:text-white transition-colors duration-200">Dewan & Seksi</Link></li>
               <li><Link to="/wijk" className="text-blue-200 hover:text-white transition-colors duration-200">Info Wijk</Link></li>
               <li><Link to="/artikel" className="text-blue-200 hover:text-white transition-colors duration-200">Publikasi</Link></li>
             </ul>
