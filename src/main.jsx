@@ -13,9 +13,14 @@ import VisiMisi from "./pages/profil/VisiMisi.jsx";
 import Parhalado from './pages/profil/Parhalado.jsx';
 
 // Dewan
-import Diakonia from "./pages/dewan/Diakonia.jsx";
-import Koinonia from "./pages/dewan/Koinonia.jsx";
-import Marturia from "./pages/dewan/Marturia.jsx";
+import Diakonia from "./pages/dewan/Dewan.jsx";
+import Koinonia from "./pages/dewan/Dewan.jsx";
+import Marturia from "./pages/dewan/Dewan.jsx";
+
+import Dewan from "./pages/dewan/Dewan.jsx";
+//nad, ini gw gabung dulu buat gampang w tambahin api nya
+// nanti pisah aja setelah w tambahin
+
 
 // Informasi
 import AnakLahir from "./pages/informasi/AnakLahir.jsx";
@@ -57,6 +62,7 @@ const router = createBrowserRouter(
         { path: 'parhalado', element: <Parhalado /> },
 
         // Dewan
+        { path: "dewan", element: <Dewan /> },
         { path: "diakonia", element: <Diakonia /> },
         { path: "koinonia", element: <Koinonia /> },
         { path: "marturia", element: <Marturia /> },
