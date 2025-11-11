@@ -125,7 +125,7 @@ const Header = ({
                 </button>
                 <ul className="absolute left-0 top-full pt-2 hidden group-hover:block group-focus-within:block z-50">
                   <li><Link to="/artikel" className="block w-56 bg-primary hover:bg-blue-900 px-4 py-2 rounded-t-md shadow-xl">Semua Artikel</Link></li>
-                  <li><Link to="/galeri-foto" className="block w-56 bg-primary hover:bg-blue-900 px-4 py-2 shadow-xl">Galeri Foto</Link></li>
+                  <li><Link to="/galeri" className="block w-56 bg-primary hover:bg-blue-900 px-4 py-2 shadow-xl">Galeri Foto</Link></li>
                   <li><Link to="/galeri-video" className="block w-56 bg-primary hover:bg-blue-900 px-4 py-2 rounded-b-md shadow-xl">Galeri Video</Link></li>
                 </ul>
               </div>
@@ -317,7 +317,7 @@ const Header = ({
             {openMobileDropdown === 'publikasi' && (
               <div className="pl-4 space-y-2">
                 <Link to="/artikel" className="block py-1" onClick={closeMobileMenu}>Semua Artikel</Link>
-                <Link to="/galeri-foto" className="block py-1" onClick={closeMobileMenu}>Galeri Foto</Link>
+                <Link to="/galeri" className="block py-1" onClick={closeMobileMenu}>Galeri Foto</Link>
                 <Link to="/galeri-video" className="block py-1" onClick={closeMobileMenu}>Galeri Video</Link>
               </div>
             )}

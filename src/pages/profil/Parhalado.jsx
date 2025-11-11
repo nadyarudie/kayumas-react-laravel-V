@@ -174,22 +174,21 @@ export default function Parhalado() {
                   .join("")
                   .substring(0, 2) 
                   .toUpperCase();
+             
+                  // 1. Logika untuk status badge (jika 'Aktif' tampilkan UPPERCASE di UI)
+                  const rawStatus = item.status || "Tidak Aktif";
+                  const isAktif = rawStatus.toLowerCase() === "aktif";
+                  const status = isAktif ? rawStatus.toUpperCase() : rawStatus;
 
-                // ✨ --- PERUBAHAN DI SINI --- ✨
-                // 1. Logika untuk status badge
-                const status = item.status || "Tidak Aktif"; 
-                const isAktif = status.toLowerCase() === 'aktif';
-                
-                // 2. Kelas untuk badge (mengadaptasi dari Panitia.jsx)
-                const statusBadgeClasses = [
-                  "absolute top-28 left-1/2 -translate-x-1/2", // Posisi: 'top-28' (112px) karena avatar kita 'h-32' (128px)
-                  "text-xs font-semibold px-4 py-1 rounded-full border-2 border-white shadow-md",
-                  isAktif 
-                    ? "bg-green-600 text-white"  // Hijau untuk Aktif
-                    : "bg-gray-500 text-white"   // Abu-abu untuk lainnya
-                ].join(" ");
-                // ✨ --- SELESAI PERUBAHAN --- ✨
-                
+                  // 2. Kelas untuk badge (mengadaptasi dari Panitia.jsx)
+                  const statusBadgeClasses = [
+                    "absolute top-28 left-1/2 -translate-x-1/2", // Posisi: 'top-28' (112px) karena avatar kita 'h-32' (128px)
+                    "text-xs font-semibold px-4 py-1 rounded-full border-2 border-white shadow-md",
+                    isAktif
+                      ? "bg-green-800 text-white" // Hijau untuk Aktif
+                      : "bg-gray-500 text-white" // Abu-abu untuk lainnya
+                  ].join(" ");
+                  
                 return (
                   <div
                     key={item.nama_parhalado + i} 

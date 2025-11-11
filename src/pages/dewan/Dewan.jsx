@@ -1,4 +1,3 @@
-// src/pages/Dewan.jsx
 import React, { useMemo, useState, useEffect } from "react";
 
 // Ambil URL API dari environment variables
@@ -14,11 +13,10 @@ const formatDate = (dateString) => {
   });
 };
 
-
-const MemberCard = ({ member }) => {
+const MemberCard = ({ member, index }) => {
   const { nama_pengurus, jabatan, tgl_mulai, tgl_selesai } = member;
   
-  // Buat Inisial (karena tidak ada 'photo' di API)
+  // Buat Inisial
   const initials = nama_pengurus
     .split(" ")
     .map((n) => n[0])
@@ -29,31 +27,32 @@ const MemberCard = ({ member }) => {
   // Buat periode dari tgl_mulai dan tgl_selesai
   const period = `${formatDate(tgl_mulai)} - ${formatDate(tgl_selesai)}`;
 
-  // Tentukan style badge berdasarkan jabatan (seperti di Panitia.jsx)
+  // Tentukan style badge berdasarkan jabatan
   const role = jabatan || "Anggota";
   const isKetua = role.toLowerCase() === 'ketua';
+  
   const roleBadgeClasses = [
-    "absolute top-20 left-1/2 -translate-x-1/2", // Posisi: 'top-20' (80px) karena avatar 'h-24' (96px)
+    "absolute top-20 left-1/2 -translate-x-1/2",
     "text-xs font-semibold px-4 py-1 rounded-full border-2 border-white shadow-md",
     isKetua 
-      ? "bg-indigo-500 text-white"  // Biru untuk Ketua (sesuai Panitia.jsx)
-      : "bg-gray-400 text-white"   // Abu-abu untuk lainnya
+      ? "bg-indigo-500 text-white"
+      : "bg-gray-400 text-white"
   ].join(" ");
 
   return (
-    // 'card-border-wrap' untuk hover
-    <div className="member-card card-border-wrap relative bg-white p-6 rounded-lg shadow-lg text-center h-full">
-      
-      {/* ✨ 1. Struktur diubah seperti Panitia.jsx ✨ */}
+    <div 
+      className="member-card card-border-wrap relative bg-white p-6 rounded-lg shadow-lg text-center h-full group transition-all duration-500 hover:shadow-2xl transform hover:-translate-y-2"
+      style={{
+        animation: `fadeInUp 0.6s ease-out ${index * 0.1}s both`
+      }}
+    >
       <div className="relative">
-        
-        {/* Avatar (dengan margin-bottom) */}
-        {/* Avatar `h-24` (96px) */}
-        <div className="w-24 h-24 rounded-full mx-auto mb-6 border-4 border-white shadow-md bg-indigo-200 text-indigo-800 flex items-center justify-center text-3xl font-bold">
+        {/* Avatar */}
+        <div className="w-24 h-24 rounded-full mx-auto mb-6 border-4 border-white shadow-md bg-indigo-200 text-indigo-800 flex items-center justify-center text-3xl font-bold transform group-hover:scale-110 transition-transform duration-500">
           {initials || "-"}
         </div>
 
-        {/* Badge Jabatan (diposisikan 'absolute' relatif ke div di atas) */}
+        {/* Badge Jabatan */}
         {jabatan && (
           <span className={roleBadgeClasses}>
             {role}
@@ -61,12 +60,14 @@ const MemberCard = ({ member }) => {
         )}
       </div>
       
-      {/* ✨ 2. Konten nama (dengan margin-top) ✨ */}
+      {/* Nama */}
       <div className="mt-4">
-        <h3 className="name font-bold text-lg text-primary">{nama_pengurus}</h3>
+        <h3 className="name font-bold text-lg text-primary group-hover:text-indigo-600 transition-colors duration-300">
+          {nama_pengurus}
+        </h3>
       </div>
       
-      {/* ✨ 3. Periode (Masa Aktif) ✨ */}
+      {/* Periode */}
       <div className="period mt-3 pt-3 border-t border-gray-200">
         <p className="period-title text-xs text-gray-400 font-semibold">MASA AKTIF</p>
         <p className="period-date text-sm text-gray-600 font-medium">{period}</p>
@@ -75,38 +76,40 @@ const MemberCard = ({ member }) => {
   );
 };
 
-
-/**
- * Komponen Accordion yang bisa dibuka-tutup.
- * (Tidak ada perubahan di sini)
- */
-const AccordionItem = ({ title, open, onToggle, children }) => (
-  <div className="accordion-item bg-white rounded-lg shadow-md overflow-hidden">
+const AccordionItem = ({ title, open, onToggle, children, index }) => (
+  <div 
+    className="accordion-item bg-white rounded-lg shadow-md overflow-hidden transition-all duration-500 hover:shadow-xl"
+    style={{
+      animation: `fadeInUp 0.5s ease-out ${index * 0.1}s both`
+    }}
+  >
     <button
-      className="accordion-header w-full flex justify-between items-center p-6 text-left"
+      className="accordion-header w-full flex justify-between items-center p-6 text-left group"
       onClick={onToggle}
     >
-      <span className="text-xl font-bold text-primary">{title}</span>
+      <span className="text-xl font-bold text-primary group-hover:text-indigo-700 transition-colors duration-300">
+        {title}
+      </span>
       <svg
-        className={`w-6 h-6 transform transition-transform duration-300 ${open ? "rotate-180" : ""}`}
+        className={`w-6 h-6 transform transition-transform duration-300 ${open ? "rotate-180" : ""} group-hover:scale-110`}
         fill="none" viewBox="0 0 24 24" stroke="currentColor"
       >
         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7"/>
       </svg>
     </button>
     <div 
-      className="accordion-content overflow-hidden" 
-      style={{ maxHeight: open ? "10000px" : 0, transition: "max-height .5s ease-in-out" }}
+      className="accordion-content overflow-hidden transition-all duration-500 ease-in-out" 
+      style={{ 
+        maxHeight: open ? "10000px" : 0,
+        opacity: open ? 1 : 0
+      }}
     >
-      <div className="bg-gray-50 p-6 pt-4">{children}</div>
+      <div className="bg-gray-50 p-6 pt-4">
+        {children}
+      </div>
     </div>
   </div>
 );
-
-// =====================================================================
-// 2. STRUKTUR STATIS DEWAN
-// (Tidak ada perubahan di sini)
-// =====================================================================
 
 const DEWAN_STRUCTURE = {
   koinonia: {
@@ -156,23 +159,14 @@ const DEWAN_STRUCTURE = {
   },
 };
 
-// =====================================================================
-// 3. KOMPONEN UTAMA (Main Component)
-// (Tidak ada perubahan di sini)
-// =====================================================================
-
 export default function Dewan() {
-  // State untuk UI
   const [activeTab, setActiveTab] = useState("koinonia"); 
   const [query, setQuery] = useState("");
   const [openIdx, setOpenIdx] = useState(null); 
-
-  // State untuk Data API
   const [allMembers, setAllMembers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  // --- 1. Fetch data dari API saat komponen dimuat ---
   useEffect(() => {
     const fetchMembers = async () => {
       try {
@@ -193,13 +187,10 @@ export default function Dewan() {
     fetchMembers();
   }, []); 
 
-  
-  // --- 2. Logika Filter dan Strukturisasi Data ---
   const filteredSections = useMemo(() => {
     const q = query.trim().toLowerCase();
     const staticSections = DEWAN_STRUCTURE[activeTab].sections;
 
-    // Fungsi sorting (Ketua dulu)
     const roleOrder = { 'ketua': 1, 'sekretaris': 2, 'bendahara': 3 };
     const sortMembers = (a, b) => {
       const roleA = a.jabatan?.toLowerCase() || "";
@@ -210,9 +201,7 @@ export default function Dewan() {
       return a.nama_pengurus.localeCompare(b.nama_pengurus);
     };
 
-    // Map melalui 'cetakan' statis dan 'suntikkan' data dari API
     return staticSections.map(sec => {
-      
       const members = allMembers
         .filter(m => m.nama_seksi === sec.apiName) 
         .filter(m => !q || m.nama_pengurus.toLowerCase().includes(q)) 
@@ -251,16 +240,33 @@ export default function Dewan() {
   
   const noResults = !loading && query && filteredSections.length === 0;
   const currentDewanDisplay = DEWAN_STRUCTURE[activeTab]; 
+  
+  // State untuk trigger animation saat ganti tab
+  const [animationKey, setAnimationKey] = useState(0);
 
-  // Reset state saat ganti tab
   useEffect(() => {
     setQuery("");
     setOpenIdx(null);
+    // Trigger animation ulang setiap ganti tab
+    setAnimationKey(prev => prev + 1);
   }, [activeTab]);
 
   return (
     <main>
-      {/* Hero Dinamis */}
+      <style>{`
+        @keyframes fadeInUp {
+          from {
+            opacity: 0;
+            transform: translateY(30px);
+          }
+          to {
+            opacity: 1;
+            transform: translateY(0);
+          }
+        }
+      `}</style>
+
+      {/* Hero Section - Sama seperti aslinya */}
       <section 
         className="relative h-80 bg-cover bg-center" 
         style={{ backgroundImage: `url(${currentDewanDisplay.heroImage})` }}
@@ -273,11 +279,11 @@ export default function Dewan() {
         </div>
       </section>
 
-      {/* Konten Utama */}
+      {/* Main Content */}
       <section className="py-20 bg-gray-100 min-h-screen">
         <div className="container mx-auto px-6 max-w-4xl">
           
-          {/* Tabs untuk navigasi */}
+          {/* Tabs - Sama seperti aslinya */}
           <div className="flex flex-wrap justify-center gap-2 md:gap-4 mb-12 border-b border-gray-300">
             {Object.keys(DEWAN_STRUCTURE).map(dewanKey => {
               const active = dewanKey === activeTab;
@@ -297,11 +303,13 @@ export default function Dewan() {
             })}
           </div>
 
-          {/* Search Bar */}
+          {/* Search Bar - Sama seperti aslinya */}
           <div className="mb-12">
             <div className="relative max-w-lg mx-auto">
               <span className="absolute inset-y-0 left-0 flex items-center pl-4">
-                <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+                <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+                </svg>
               </span>
               <input
                 type="text"
@@ -313,17 +321,22 @@ export default function Dewan() {
             </div>
           </div>
 
-          {/* Tampilan Loading / Error */}
+          {/* Loading State */}
           {loading && (
-            <div className="text-center text-gray-500 p-8">Memuat data pengurus...</div>
+            <div className="text-center text-gray-500 p-8">
+              <div className="inline-block w-12 h-12 border-4 border-gray-200 border-t-indigo-600 rounded-full animate-spin mb-4"></div>
+              <p>Memuat data pengurus...</p>
+            </div>
           )}
+
+          {/* Error State */}
           {error && (
             <div className="text-center text-red-500 p-8">Error: {error}</div>
           )}
 
-          {/* Accordion List Dinamis */}
+          {/* Accordion List */}
           {!loading && !error && (
-            <div className="space-y-4">
+            <div className="space-y-4" key={animationKey}>
               {filteredSections.map((sec, idx) => {
                 const hasMain = (sec.members?.length || 0) > 0;
                 const hasSub = (sec.subgroups?.some(sg => sg.members.length > 0) || false);
@@ -335,25 +348,24 @@ export default function Dewan() {
                     title={sec.title}
                     open={openIdx === idx}
                     onToggle={() => setOpenIdx(openIdx === idx ? null : idx)}
+                    index={idx}
                   >
                     {showEmptyText ? (
                       <div className="text-center text-gray-500">Belum ada data anggota.</div>
                     ) : (
                       <>
-                        {/* Render Anggota Utama */}
                         {hasMain && (
                           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-                            {sec.members.map(m => <MemberCard key={m.nama_pengurus} member={m} />)}
+                            {sec.members.map((m, i) => <MemberCard key={m.nama_pengurus} member={m} index={i} />)}
                           </div>
                         )}
 
-                        {/* Render Subgroups (jika ada) */}
                         {sec.subgroups?.map(sg => (
                           <div key={sg.title} className={`${hasMain ? 'border-t pt-6 mt-6' : ''}`}>
                             <h4 className="font-bold text-lg mb-4 text-center text-primary">{sg.title}</h4>
                             {sg.members.length > 0 ? (
                               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-                                {sg.members.map(m => <MemberCard key={m.nama_pengurus} member={m} />)}
+                                {sg.members.map((m, i) => <MemberCard key={m.nama_pengurus} member={m} index={i} />)}
                               </div>
                             ) : (
                               <p className="text-center text-gray-500">Tidak ada anggota.</p>
@@ -368,7 +380,9 @@ export default function Dewan() {
             </div>
           )}
           
-          {noResults && <p className="text-center text-gray-500 mt-12">Tidak ada anggota yang cocok dengan pencarian Anda.</p>}
+          {noResults && (
+            <p className="text-center text-gray-500 mt-12">Tidak ada anggota yang cocok dengan pencarian Anda.</p>
+          )}
         </div>
       </section>
     </main>
